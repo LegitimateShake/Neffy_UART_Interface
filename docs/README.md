@@ -1,17 +1,19 @@
-# Die NeffyInterface Klasse ist gedacht für den Austausch von Informationen über UART mit dem ESP32.
+# NeffyInterface für den Austausch von Informationen über UART mit dem ESP32.
+
+Main GitHub-Repo für [Neffy 3.0](https://github.com/YounesJamil/Neffy-3.0).
 
 ## Aufbau:
 
-    Neffy_Interface.h
+    ### Neffy_Interface.h
 
         - Enthält implementierte Funktionen zur Kommunikation 
         - Muss inkludiert werden
 
-    Neffy_Interface_Types.h
+    ### Neffy_Interface_Types.h
 
         - Enthält Datentyp-Definitionen
 
-    Supported_Commands.h
+    ### Supported_Commands.h
 
         - Enthält eine enum mit allen unterstützen Commands
         - Hier können Commands hinzugefügt werden, falls nötig
