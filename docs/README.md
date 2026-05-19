@@ -1,6 +1,6 @@
-Die NeffyInterface Klasse ist gedacht für den Austausch von Informationen über UART mit dem ESP32.
+# Die NeffyInterface Klasse ist gedacht für den Austausch von Informationen über UART mit dem ESP32.
 
-Aufbau:
+## Aufbau:
 
     Neffy_Interface.h
 
@@ -18,7 +18,7 @@ Aufbau:
         - Dabei muss der Command in der enum ergänzt werden, COMMAND_AMOUNT inkrementiert werden und der command in Supported_Commands.cpp in
           das entsprechende Array eingetragen werden
 
-Protokollaufbau:
+## Protokollaufbau:
 
     Das Übertragungsprotokoll ist basiert auf der Übertragung einzelner Bytes. Jede Message, die geschickt / empfangen wird muss den folgenden Aufbau haben:
 
