@@ -24,17 +24,17 @@ Main GitHub-Repo für [Neffy 3.0](https://github.com/YounesJamil/Neffy-3.0).
 
   Das Übertragungsprotokoll ist basiert auf der Übertragung einzelner Bytes. Jede Message, die geschickt / empfangen wird muss den folgenden Aufbau haben:
 
-    Byte 0:       START_OF_FRAME_IDENTIFIER (Makro ist definiert in Neffy_Interface_Types.h)
-    Byte 1:       CommandID                 (Commands, die in Supported_Commands.h definiert sind)
-    Byte 2:       Payload Length in Bytes
-    Byte 3 - ...: Menge an Payload Bytes, die in Byte 2 angegeben ist. Alle weiteren Bytes werden ignoriert
+  - Byte 0:       START_OF_FRAME_IDENTIFIER (Makro ist definiert in Neffy_Interface_Types.h)
+  - Byte 1:       CommandID                 (Commands, die in Supported_Commands.h definiert sind)
+  - Byte 2:       Payload Length in Bytes
+  - Byte 3 - ...: Menge an Payload Bytes, die in Byte 2 angegeben ist. Alle weiteren Bytes werden ignoriert
   
-        Beispiel: 
-  
-            - START_OF_FRAME_IDENTIFIER = 0xFF
-            - CommandID                 = 0xA1
-            - Payload Length            = 0x04
-            - Payload                   = 0x01, 0x02, 0x03, 0x04
+      Beispiel: 
+
+      - START_OF_FRAME_IDENTIFIER = 0xFF
+      - CommandID                 = 0xA1
+      - Payload Length            = 0x04
+      - Payload                   = 0x01, 0x02, 0x03, 0x04
   
                       Start   ID    Length        Payload
             Message: [0xFF] [0xA1] [0x04] [0x01][0x02][0x03][0x04]
