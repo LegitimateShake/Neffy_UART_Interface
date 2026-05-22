@@ -40,13 +40,13 @@ Main GitHub-Repo für [Neffy 3.0](https://github.com/YounesJamil/Neffy-3.0).
   
    ### Beispiel: 
   
-  - START_OF_FRAME_IDENTIFIER = 0xFF
+  - START_OF_FRAME_IDENTIFIER = 0xFA
   - CommandID                 = 0xA1
   - Payload Length            = 0x04
   - Payload                   = 0x01, 0x02, 0x03, 0x04
   ```
             Start    ID   Length           Payload
-  Message: [0xFF]  [0xA1] [0x04]  [0x01][0x02][0x03][0x04]
+  Message: [0xFA]  [0xA1] [0x04]  [0x01][0x02][0x03][0x04]
   Binary : [11111111][10100001][00000100][00000001][00000010][00000011][00000100]
   ```
   Die Maximale Größe einer Message ist definiert in Neffy_Interface_Types.h
