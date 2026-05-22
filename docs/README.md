@@ -25,7 +25,7 @@ Main GitHub-Repo für [Neffy 3.0](https://github.com/YounesJamil/Neffy-3.0).
 
 - Enthält eine enum mit allen unterstützen Commands
 - Hier können Commands hinzugefügt werden, falls nötig
-- Dabei muss der Command in der enum ergänzt werden, COMMAND_AMOUNT inkrementiert werden und der command in Supported_Commands.cpp in
+- Dabei muss der Command in der NeffyCommands struct ergänzt werden, COMMAND_AMOUNT inkrementiert werden und der command in Supported_Commands.cpp in
   das entsprechende Array eingetragen werden. Danach kann eine Funktion für den entsprechenden Command registriert werden.
 
 ## Protokollaufbau:
