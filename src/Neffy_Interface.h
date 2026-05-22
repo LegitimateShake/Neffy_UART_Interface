@@ -20,8 +20,6 @@ class NeffyInterface {
         Message messages[MESSAGE_BUFFER_SIZE];
         uint8_t messages_in_buffer = 0;       
 
-        uint8_t out_buffer[MAX_MESSAGE_LENGTH] = {0};
-
         /**
          * @brief Checks if UART data is available and copies it into the buffer
          * @return amount of bytes that were read

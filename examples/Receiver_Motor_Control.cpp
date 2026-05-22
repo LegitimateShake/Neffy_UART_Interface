@@ -1,9 +1,11 @@
 #include "Arduino.h"
-#include "Second_Core.h"
 #include "driver/gpio.h"
 #include "Neffy_Interface.h"
 #include "MotorController.h"
 #include <atomic>
+#include <esp_task_wdt.h>         // Multiprocessing
+#include <freertos/FreeRTOS.h>    // Code Blocks for Multicore applications
+#include <freertos/semphr.h>      
 
 /**
  * @brief This program runs on the second core of the ESP32. It takes care of motor actuation and limit checks
@@ -107,7 +109,14 @@ void setup() {
     interface.addMethod(NeffyCommands::MOVE_BODY_IN_TIME.id, &moveBody);        
     interface.addMethod(NeffyCommands::MOVE_HEAD_IN_TIME.id, &moveHead);
     
-    CoreZeroStart(&motorCoreControlLoop);
+    //Initialize the motor control loop on the second core
+    void* taskParameter           = nullptr;
+    uint32_t stackSize            = 4096;
+    BaseType_t core               = 0;
+    UBaseType_t motorLoopPriority = 2;
+    TaskHandle_t* taskHandle      = nullptr;
+    
+    xTaskCreatePinnedToCore(&motorCoreControlLoop, "MotorLoop", stackSize, taskParameter, motorLoopPriority, taskHandle, core);   
 }
 
 void loop() {

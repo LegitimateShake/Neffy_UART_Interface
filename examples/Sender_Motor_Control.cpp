@@ -28,9 +28,9 @@ void setup() {
     //Initialize the UART Communication
     interface.initUART(rx_pin, tx_pin, baudrate, UART_NUM_1);
 
-    uint16_t forwad_target = 500; // 50mm * 10
-    uint16_t backward_target = 0; //  0mm * 10
-    uint16_t duration = 50;       // 5sec * 10
+    uint16_t forwad_target   = 500; // 50mm * 10
+    uint16_t backward_target =   0; //  0mm * 10
+    uint16_t duration        =  50; // 5sec * 10
 
     //Fill the Message structs that should be sent over UART
     msg_forward.command         = NeffyCommands::MOVE_BODY_IN_TIME.id;

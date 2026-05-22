@@ -6,9 +6,9 @@ static constexpr uint8_t  COMMAND_AMOUNT = 8; // Amount of currently supported c
 
 struct CommandMetadata {
 
-    uint8_t id;
-    uint8_t payloadLength;
-    float   scaleFactor;
+    uint8_t id;             //-ID of the Command
+    uint8_t payloadLength;  //-Expected amount of payload bytes
+    float   scaleFactor;    //-Value for scaling incloming integer values back to floats
 };
 
 struct NeffyCommands {

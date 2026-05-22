@@ -178,12 +178,15 @@ int NeffyInterface::writeMessage(Message& msg) {
 
     if (msg.command == INVALID_MESSAGE_ID || payload_size > PAYLOAD_BUFFER_SIZE) return -1;
 
+    uint8_t out_buffer[MAX_MESSAGE_LENGTH];
+
     out_buffer[0] = START_OF_FRAME_IDENTIFIER;
     out_buffer[1] = msg.command;
     out_buffer[2] = payload_size;
 
     if(payload_size > 0) std::memcpy(&out_buffer[3], msg.buffer, payload_size);
 
+    //If both Cores are able to write messages in the future, this call needs to be protected through a mutex
     int bytes_sent = uart_write_bytes(uart_port, out_buffer, bytes_to_send);
 
     return bytes_sent;

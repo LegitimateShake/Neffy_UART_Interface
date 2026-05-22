@@ -4,10 +4,10 @@
 static constexpr uint16_t INPUT_BUFFER_SIZE   =  256; // Amount of bytes for incoming data
 static constexpr uint16_t PAYLOAD_BUFFER_SIZE =   16; // Amount of bytes of payload per message
 static constexpr uint8_t  MESSAGE_BUFFER_SIZE =   16; // Amount of messages that can be stored at the same time
-static constexpr uint8_t  MESSAGE_HEADER_SIZE =    3; // Amount of bytes in the message header [0xFF][CommandID][PayloadLength]
+static constexpr uint8_t  MESSAGE_HEADER_SIZE =    3; // Amount of bytes in the message header [0xFA][CommandID][PayloadLength]
 static constexpr uint8_t  MAX_MESSAGE_LENGTH  =   MESSAGE_HEADER_SIZE + PAYLOAD_BUFFER_SIZE; 
 
-static constexpr uint8_t  START_OF_FRAME_IDENTIFIER = 0xFF; // Must be the first byte of each message
+static constexpr uint8_t  START_OF_FRAME_IDENTIFIER = 0xFA; // Must be the first byte of each message
 static constexpr uint8_t  INVALID_MESSAGE_ID        = 0xFF; // This is used to check if a commandID was set before sending a message out
 
 static constexpr uint16_t UART_RX_BUFFER_SIZE  = 256; // Internal Ring Buffer Size
