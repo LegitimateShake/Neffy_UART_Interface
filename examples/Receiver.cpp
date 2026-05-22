@@ -4,7 +4,7 @@
 
 /*
 
-Change these parameters to the board you are using
+Change these parameters to the pins of the board you are using
 
 */
 uint8_t    rx_pin   = 44;
