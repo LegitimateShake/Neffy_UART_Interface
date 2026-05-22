@@ -27,7 +27,7 @@ void setup() {
     interface.initUART(rx_pin, tx_pin, baudrate, UART_NUM_1);
 
     //Fill the Message structs that should be sent over UART
-    msg.command         = CMD_LED;
+    msg.command         = NeffyCommands::LED.id;
     msg.bytes_in_buffer = 1;
     msg.buffer[0]       = 0x00;
 

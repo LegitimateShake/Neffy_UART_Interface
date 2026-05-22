@@ -62,7 +62,7 @@ class NeffyInterface {
          * @param method A pointer to the method. The method must return void an take a reference to a Message struct as an argument
          * @return `0` on sucess, `-1` if the CommandID was not valid
          */
-        int addMethod(CommandID id, void (*method)(Message&));
+        int addMethod(uint8_t id, void (*method)(Message&));
 
         /**
          * @brief Sends the contents of the message over UART

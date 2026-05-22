@@ -47,7 +47,7 @@ void setup() {
     interface.initUART(rx_pin, tx_pin, baudrate, UART_NUM_0);
 
     //Add methods for commands
-    interface.addMethod(CMD_LED, &blink);
+    interface.addMethod(NeffyCommands::LED.id, &blink);
 }
 
 void loop() {

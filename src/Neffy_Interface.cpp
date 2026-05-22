@@ -189,7 +189,7 @@ int NeffyInterface::writeMessage(Message& msg) {
     return bytes_sent;
 }
 
-int NeffyInterface::addMethod(CommandID id, void (*method)(Message&)) {
+int NeffyInterface::addMethod(uint8_t id, void (*method)(Message&)) {
 
     //Find the corresponding method
     for(int i = 0 ; i < COMMAND_AMOUNT ; i ++) {
