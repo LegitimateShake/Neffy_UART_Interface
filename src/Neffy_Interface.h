@@ -7,6 +7,7 @@
 #include "Supported_Commands.h"
 #include "driver/uart.h"
 #include "driver/gpio.h"
+#include "freertos/semphr.h"
 
 class NeffyInterface {
     
@@ -19,6 +20,9 @@ class NeffyInterface {
 
         Message messages[MESSAGE_BUFFER_SIZE];
         uint8_t messages_in_buffer = 0;       
+
+        //Mutex for protecting write operations from different cores
+        SemaphoreHandle_t mutexWriteMessage = NULL;
 
         /**
          * @brief Checks if UART data is available and copies it into the buffer
@@ -74,5 +78,4 @@ class NeffyInterface {
          * @return amount of messages that were processed
          */
         int update();
-
 };

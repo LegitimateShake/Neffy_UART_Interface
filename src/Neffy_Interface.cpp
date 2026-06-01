@@ -6,7 +6,7 @@ uart_config_t uart_config = {.data_bits  = UART_DATA_8_BITS,
                              .flow_ctrl  = UART_HW_FLOWCTRL_DISABLE,
                              .source_clk = UART_SCLK_APB};
 
-NeffyInterface::NeffyInterface() {}
+NeffyInterface::NeffyInterface() : mutexWriteMessage(xSemaphoreCreateMutex()){}
 
 NeffyInterface::~NeffyInterface() {
 
@@ -186,8 +186,9 @@ int NeffyInterface::writeMessage(Message& msg) {
 
     if(payload_size > 0) std::memcpy(&out_buffer[3], msg.buffer, payload_size);
 
-    //If both Cores are able to write messages in the future, this call needs to be protected through a mutex
+    xSemaphoreTake(mutexWriteMessage, portMAX_DELAY);
     int bytes_sent = uart_write_bytes(uart_port, out_buffer, bytes_to_send);
+    xSemaphoreGive(mutexWriteMessage);
 
     return bytes_sent;
 }
