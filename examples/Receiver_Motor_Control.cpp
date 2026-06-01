@@ -16,10 +16,6 @@ void setup() {
     //Initialize the UART Communication
     interface.initUART(rx_pin, tx_pin, baudrate, UART_NUM_0);
     
-    interface.addMethod(NeffyCommands::MOVE_BODY_IN_TIME.id, &moveBody);        
-    interface.addMethod(NeffyCommands::MOVE_HEAD_IN_TIME.id, &moveHead);
-    interface.addMethod(NeffyCommands::MOVE_BODY_HEAD_IN_TIME.id, &moveBodyAndHead);
-    
     //Initialize the motor control loop on the second core
     void* taskParameter           = nullptr;
     uint32_t stackSize            = 4096;
