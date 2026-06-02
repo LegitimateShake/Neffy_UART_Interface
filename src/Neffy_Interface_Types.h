@@ -23,10 +23,10 @@ struct Message {
 
 enum class ParsingState {
 
-    no_valid_message,
-    no_storage_space,
-    wait_for_data,
-    valid_message
+    valid_message_found,
+    no_valid_message_found,
+    message_buffer_full,
+    wait_for_remaining_data
 };
 
 struct ParsingResult {

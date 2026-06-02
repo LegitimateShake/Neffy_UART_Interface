@@ -62,29 +62,29 @@ ParsingResult NeffyInterface::checkForValidMessage(int index) {
 
     // 1) CASE: Not a start byte - move to next byte
     if(_in_buffer[index] != START_OF_FRAME_IDENTIFIER) 
-        return {.state = ParsingState::no_valid_message, .bytesProcessed = 1};
+        return {.state = ParsingState::no_valid_message_found, .bytesProcessed = 1};
 
     // 2) CASE: Header is incomplete - do not process the START_OF_FRAME_IDENTIFIER byte and wait for the rest of the header
     if(index + MESSAGE_HEADER_SIZE > _bytes_in_buffer) 
-        return {.state = ParsingState::wait_for_data, .bytesProcessed = 0};
+        return {.state = ParsingState::wait_for_remaining_data, .bytesProcessed = 0};
 
     uint8_t  payload_length = _in_buffer[index + 2];
     uint16_t message_length = payload_length + MESSAGE_HEADER_SIZE;
 
     // 3) CASE: Payload of the package is bigger than the message buffer or the message is longer than the limit - process and ignore packet start and continue
     if(payload_length > PAYLOAD_BUFFER_SIZE || message_length > MAX_MESSAGE_LENGTH) 
-        return {.state = ParsingState::no_valid_message, .bytesProcessed = 1};
+        return {.state = ParsingState::no_valid_message_found, .bytesProcessed = 1};
 
     // 4) CASE: Payload is incomplete - do not process the START_OF_FRAME_IDENTIFIER byte and wait for the rest of the message
     if(index + message_length > _bytes_in_buffer) 
-        return {.state = ParsingState::wait_for_data, .bytesProcessed = 0};
+        return {.state = ParsingState::wait_for_remaining_data, .bytesProcessed = 0};
     
     // 5) CASE: Too many unprocessed messages are already in the message queue - do do not process the START_OF_FRAME_IDENTIFIER byte and stop processing the buffer
     if(_messages_in_buffer >= MESSAGE_BUFFER_SIZE) 
-        return {.state = ParsingState::no_storage_space, .bytesProcessed = 0};
+        return {.state = ParsingState::message_buffer_full, .bytesProcessed = 0};
 
     //Valid Message in the Buffer
-    return {.state = ParsingState::valid_message, .bytesProcessed = static_cast<uint8_t>(message_length)};
+    return {.state = ParsingState::valid_message_found, .bytesProcessed = static_cast<uint8_t>(message_length)};
 }
 
 void NeffyInterface::storeData(const uint8_t* messageStart) {
@@ -123,17 +123,17 @@ int NeffyInterface::processData() {
 
         switch (messageState.state)
         {
-        case ParsingState::valid_message:
+        case ParsingState::valid_message_found:
             storeData(&_in_buffer[index]);
             index += messageState.bytesProcessed;
             break;
         
-        case ParsingState::no_valid_message:    
+        case ParsingState::no_valid_message_found:    
             index += messageState.bytesProcessed;
             break;
         
-        case ParsingState::no_storage_space:
-        case ParsingState::wait_for_data:
+        case ParsingState::message_buffer_full:
+        case ParsingState::wait_for_remaining_data:
             compactInputBuffer(index);
             return _messages_in_buffer;
         }
@@ -152,6 +152,7 @@ void NeffyInterface::executeCommand() {
         uint8_t msg_ID = _messages[i].command;
         void (*method)(Message&) = nullptr;
 
+        //Prevents accessing data outside the array if a corrupted commandID is received
         if(msg_ID <= MAX_COMMAND_ID)
             method = _dispatchTable[msg_ID];
         
@@ -177,7 +178,6 @@ int NeffyInterface::update() {
     }
     return messages;
 }
-
 
 int NeffyInterface::writeMessage(const Message& msg) {
 

@@ -16,7 +16,7 @@ class NeffyInterface {
         uart_port_t _uart_port;
 
         uint8_t _in_buffer[INPUT_BUFFER_SIZE] = {0};
-        uint8_t _bytes_in_buffer             =  0 ;
+        uint8_t _bytes_in_buffer             =   0 ;
 
         Message _messages[MESSAGE_BUFFER_SIZE];
         uint8_t _messages_in_buffer = 0;       
@@ -50,7 +50,7 @@ class NeffyInterface {
 
         /**
          * @brief Removes all processed bytes from the input buffer and moves all unprocessed bytes to the front
-         * @param dataIndex The index of the last byte that was processed 
+         * @param dataIndex The index of the first byte that was not processed
          * @return `None`
          */
         void compactInputBuffer(int dataIndex);
