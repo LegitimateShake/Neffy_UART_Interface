@@ -6,11 +6,11 @@ uart_config_t uart_config = {.data_bits  = UART_DATA_8_BITS,
                              .flow_ctrl  = UART_HW_FLOWCTRL_DISABLE,
                              .source_clk = UART_SCLK_APB};
 
-NeffyInterface::NeffyInterface() : mutexWriteMessage(xSemaphoreCreateMutex()){}
+NeffyInterface::NeffyInterface() : _mutexWriteMessage(xSemaphoreCreateMutex()){}
 
 NeffyInterface::~NeffyInterface() {
 
-    if(uart_is_driver_installed(uart_port)) uart_driver_delete(uart_port);
+    if(uart_is_driver_installed(_uart_port)) uart_driver_delete(_uart_port);
 }
 
 int NeffyInterface::initUART(uint8_t RX, uint8_t TX, uint32_t baudrate, uart_port_t port) {
@@ -25,7 +25,7 @@ int NeffyInterface::initUART(uint8_t RX, uint8_t TX, uint32_t baudrate, uart_por
         if(uart_status != ESP_OK) return -1;
     }
 
-    uart_port = port;
+    _uart_port = port;
     uart_config.baud_rate = baudrate;
     
     int timeout_threshold =  static_cast<int>(std::ceil((UART_RX_TIMEOUT_US * (double)baudrate) / (1000000.0 * UART_BITS_PER_SYMBOL))); 
@@ -44,112 +44,120 @@ int NeffyInterface::initUART(uint8_t RX, uint8_t TX, uint32_t baudrate, uart_por
 
 int NeffyInterface::readData() {
 
-    if(bytes_in_buffer >= INPUT_BUFFER_SIZE) bytes_in_buffer = 0;
+    if(_bytes_in_buffer >= INPUT_BUFFER_SIZE) _bytes_in_buffer = 0;
 
-    uint32_t space_in_buffer = INPUT_BUFFER_SIZE - bytes_in_buffer;
+    uint32_t space_in_buffer = INPUT_BUFFER_SIZE - _bytes_in_buffer;
 
-    int bytes_read = uart_read_bytes(uart_port, &in_buffer[bytes_in_buffer], space_in_buffer, 0);
+    int bytes_read = uart_read_bytes(_uart_port, &_in_buffer[_bytes_in_buffer], space_in_buffer, 0);
 
     if(bytes_read > 0) {
         
-        bytes_in_buffer += bytes_read;
+        _bytes_in_buffer += bytes_read;
     }
 
     return bytes_read;
 }   
 
+ParsingResult NeffyInterface::checkForValidMessage(int index) {
+
+    // 1) CASE: Not a start byte - move to next byte
+    if(_in_buffer[index] != START_OF_FRAME_IDENTIFIER) 
+        return {.state = ParsingState::no_valid_message, .bytesProcessed = 1};
+
+    // 2) CASE: Header is incomplete - do not process the START_OF_FRAME_IDENTIFIER byte and wait for the rest of the header
+    if(index + MESSAGE_HEADER_SIZE > _bytes_in_buffer) 
+        return {.state = ParsingState::wait_for_data, .bytesProcessed = 0};
+
+    uint8_t  payload_length = _in_buffer[index + 2];
+    uint16_t message_length = payload_length + MESSAGE_HEADER_SIZE;
+
+    // 3) CASE: Payload of the package is bigger than the message buffer or the message is longer than the limit - process and ignore packet start and continue
+    if(payload_length > PAYLOAD_BUFFER_SIZE || message_length > MAX_MESSAGE_LENGTH) 
+        return {.state = ParsingState::no_valid_message, .bytesProcessed = 1};
+
+    // 4) CASE: Payload is incomplete - do not process the START_OF_FRAME_IDENTIFIER byte and wait for the rest of the message
+    if(index + message_length > _bytes_in_buffer) 
+        return {.state = ParsingState::wait_for_data, .bytesProcessed = 0};
+    
+    // 5) CASE: Too many unprocessed messages are already in the message queue - do do not process the START_OF_FRAME_IDENTIFIER byte and stop processing the buffer
+    if(_messages_in_buffer >= MESSAGE_BUFFER_SIZE) 
+        return {.state = ParsingState::no_storage_space, .bytesProcessed = 0};
+
+    //Valid Message in the Buffer
+    return {.state = ParsingState::valid_message, .bytesProcessed = static_cast<uint8_t>(message_length)};
+}
+
+void NeffyInterface::storeData(const uint8_t* messageStart) {
+
+    Message& msg = _messages[_messages_in_buffer]; 
+
+    uint8_t commandID            =  messageStart[1];
+    uint8_t payloadLength        =  messageStart[2];
+    const uint8_t* payloadStart  = &messageStart[3];
+
+    msg.command         = commandID;
+    msg.bytes_in_buffer = payloadLength;
+
+    if(payloadLength > 0) 
+        std::memcpy(msg.buffer, payloadStart, payloadLength);
+
+    _messages_in_buffer++;
+}
+
+void NeffyInterface::compactInputBuffer(int dataIndex) {
+
+    _bytes_in_buffer -= dataIndex;
+
+    if(_bytes_in_buffer > 0 && dataIndex > 0) 
+        std::memmove(_in_buffer, &_in_buffer[dataIndex], _bytes_in_buffer);
+}
+
 int NeffyInterface::processData() {
 
-    uint16_t bytes_processed = 0;
+    int index = 0;
+    ParsingResult messageState;
 
-    //Iterates over all bytes in the buffer
-    for(int i = 0 ; i < bytes_in_buffer ; i++) { 
+    while(index < _bytes_in_buffer) {
 
-        // 1) CASE: Not a start byte - move to next byte
-        if(in_buffer[i] != START_OF_FRAME_IDENTIFIER) {
+        messageState = checkForValidMessage(index);
 
-            bytes_processed = i + 1;
-            continue;
-        }
-
-        // 2) CASE: Header is incomplete - do not process the START_OF_FRAME_IDENTIFIER byte and wait for the rest of the header
-        if(i + MESSAGE_HEADER_SIZE > bytes_in_buffer) {
-            
-            bytes_processed = i;
+        switch (messageState.state)
+        {
+        case ParsingState::valid_message:
+            storeData(&_in_buffer[index]);
+            index += messageState.bytesProcessed;
             break;
-        }
-
-        uint8_t  commandID      = in_buffer[i + 1];
-        uint8_t  payload_length = in_buffer[i + 2];
-        uint16_t message_length = payload_length + MESSAGE_HEADER_SIZE;
-        uint16_t payload_start  = i              + MESSAGE_HEADER_SIZE;
-
-        // 3) CASE: Payload of the package is bigger than the message buffer or the message is longer than the limit - process and ignore packet start and continue
-        if(payload_length > PAYLOAD_BUFFER_SIZE || message_length > MAX_MESSAGE_LENGTH) {
-         
-            bytes_processed = i + 1;
-            continue;
-        }
-
-        // 4) CASE: Payload is incomplete - do not process the START_OF_FRAME_IDENTIFIER byte and wait for the rest of the message
-        if(i + message_length > bytes_in_buffer) {
-                        
-            bytes_processed = i;
+        
+        case ParsingState::no_valid_message:    
+            index += messageState.bytesProcessed;
             break;
+        
+        case ParsingState::no_storage_space:
+        case ParsingState::wait_for_data:
+            compactInputBuffer(index);
+            return _messages_in_buffer;
         }
-
-        // 5) CASE: Too many unprocessed messages are already in the message queue - do do not process the START_OF_FRAME_IDENTIFIER byte and stop processing the buffer
-        if(messages_in_buffer >= MESSAGE_BUFFER_SIZE) {
-                        
-            bytes_processed = i;
-            break;
-        }
-
-        //-------------------------------------------------------------------------------------------------------------------//
-        //   If we arrive here, the message looks valid and we have got enough space to store it - so store the message      //
-        //-------------------------------------------------------------------------------------------------------------------//
-        messages[messages_in_buffer].command         = commandID;
-        messages[messages_in_buffer].bytes_in_buffer = payload_length;
-
-        if(payload_length > 0) std::memcpy(messages[messages_in_buffer].buffer, &in_buffer[payload_start], payload_length);
-
-        messages_in_buffer++;
-        bytes_processed = i + message_length;
-        i += message_length - 1;
     }
 
-    //-------------------------------------------------------------------------------------------------------------------//
-    //   If we arrive here, we processed the entire buffer - Now we need to remove all processed bytes to make space     //
-    //-------------------------------------------------------------------------------------------------------------------//
-    bytes_in_buffer -= bytes_processed;
-    
-    if(bytes_in_buffer > 0) std::memmove(in_buffer, &in_buffer[bytes_processed], bytes_in_buffer);
-
-    return messages_in_buffer;
+    compactInputBuffer(index);
+    return _messages_in_buffer;
 }
 
 void NeffyInterface::executeCommand() {
 
     //Iterate over all messages in the message buffer
-    for(int i = 0 ; i < messages_in_buffer ; i++) {
+    for(int i = 0 ; i < _messages_in_buffer ; i++) {
 
-        uint8_t msg_ID = messages[i].command;
-        Message& msg   = messages[i];
+        //The messageID is the index of the corresponding method
+        uint8_t msg_ID = _messages[i].command;
         void (*method)(Message&) = nullptr;
 
-        //Find the corresponding method
-        for(int j = 0 ; j < COMMAND_AMOUNT ; j ++) {
-
-            if(msg_ID == commandTable[j].commandID) {
-
-                method = commandTable[j].method;
-                break;
-            }
-        }
-        if(method != nullptr) method(msg);
+        if(msg_ID <= MAX_COMMAND_ID)
+            method = _dispatchTable[msg_ID];
+        
+        if(method != nullptr) method(_messages[i]);
     }
-
-    messages_in_buffer = 0;
+    _messages_in_buffer = 0;
 
     return;
 }
@@ -171,7 +179,7 @@ int NeffyInterface::update() {
 }
 
 
-int NeffyInterface::writeMessage(Message& msg) {
+int NeffyInterface::writeMessage(const Message& msg) {
 
     uint8_t payload_size = msg.bytes_in_buffer;
     size_t bytes_to_send = MESSAGE_HEADER_SIZE + payload_size;
@@ -186,47 +194,19 @@ int NeffyInterface::writeMessage(Message& msg) {
 
     if(payload_size > 0) std::memcpy(&out_buffer[3], msg.buffer, payload_size);
 
-    xSemaphoreTake(mutexWriteMessage, portMAX_DELAY);
-    int bytes_sent = uart_write_bytes(uart_port, out_buffer, bytes_to_send);
-    xSemaphoreGive(mutexWriteMessage);
+    xSemaphoreTake(_mutexWriteMessage, portMAX_DELAY);
+    int bytes_sent = uart_write_bytes(_uart_port, out_buffer, bytes_to_send);
+    xSemaphoreGive(_mutexWriteMessage);
 
     return bytes_sent;
 }
 
 int NeffyInterface::addMethod(uint8_t id, void (*method)(Message&)) {
 
-    //Find the corresponding method
-    for(int i = 0 ; i < COMMAND_AMOUNT ; i ++) {
+    if(id <= MAX_COMMAND_ID) {
 
-        if(id == commandTable[i].commandID) {
-
-            commandTable[i].method = method;
-            return 0;
-        }
+        _dispatchTable[id] = method;
+        return 0;
     }
     return -1;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

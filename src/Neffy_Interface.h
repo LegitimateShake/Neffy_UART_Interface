@@ -13,16 +13,19 @@ class NeffyInterface {
     
     private:
 
-        uart_port_t uart_port;
+        uart_port_t _uart_port;
 
-        uint8_t in_buffer[INPUT_BUFFER_SIZE] = {0};
-        uint8_t bytes_in_buffer              =  0 ;
+        uint8_t _in_buffer[INPUT_BUFFER_SIZE] = {0};
+        uint8_t _bytes_in_buffer             =  0 ;
 
-        Message messages[MESSAGE_BUFFER_SIZE];
-        uint8_t messages_in_buffer = 0;       
+        Message _messages[MESSAGE_BUFFER_SIZE];
+        uint8_t _messages_in_buffer = 0;       
+
+        //Lookup Table of methods for each received command
+        void (*_dispatchTable[MAX_COMMAND_ID + 1])(Message&) = {nullptr};
 
         //Mutex for protecting write operations from different cores
-        SemaphoreHandle_t mutexWriteMessage = NULL;
+        SemaphoreHandle_t _mutexWriteMessage = NULL;
 
         /**
          * @brief Checks if UART data is available and copies it into the buffer
@@ -31,8 +34,30 @@ class NeffyInterface {
         int readData();
 
         /**
-         * @brief Decodes the incoming data in the buffer and fills the message struct
-         * @return The amount of messages that are currently in the buffer
+         * @brief Checks the input buffer for a valid message
+         * @param index the index of the input buffer where the search should be started
+         * @return `ParsingResult` struct, containing the result of the search and the total number of bytes that were processed.
+         *          These include the full header + payload length, if sucessful
+         */
+        ParsingResult checkForValidMessage(int index);
+
+        /**
+         * @brief copies a message from the input buffer into a message struct. Should only be called after a valid message was found
+         * @param data Pointer to the `Start of Frame Identifier` of a valid message in the input buffer
+         * @return `None`
+         */
+        void storeData(const uint8_t* data);
+
+        /**
+         * @brief Removes all processed bytes from the input buffer and moves all unprocessed bytes to the front
+         * @param dataIndex The index of the last byte that was processed 
+         * @return `None`
+         */
+        void compactInputBuffer(int dataIndex);
+
+        /**
+         * @brief Searches the input buffer for valid messages and copies them into into message structs
+         * @return The amount of messages that are currently in the message buffer
          */
         int processData();
 
@@ -71,7 +96,7 @@ class NeffyInterface {
          * @param msg Message struct, that must include `id` and `msg_bytes_in_buffer`
          * @return `-1` if the message was not initialized correctly, else amount of bytes that were transfered to the buffer
          */
-        int writeMessage(Message& msg);
+        int writeMessage(const Message& msg);
 
         /**
          * @brief Reads and processes new data over UART and calls the corresponding methods. Should be called in a loop

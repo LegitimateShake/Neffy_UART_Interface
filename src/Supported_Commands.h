@@ -2,7 +2,11 @@
 #include "stdint.h"
 #pragma once
 
-static constexpr uint8_t  COMMAND_AMOUNT = 10; // Amount of currently supported commands. Increment, if you add more
+static constexpr uint8_t  COMMAND_AMOUNT =   10; // Amount of currently supported commands. Increment, if you add more
+static constexpr uint8_t  MAX_COMMAND_ID = 0x09; // Biggest commandID. Is used for length of command lookup-table. Increment if you add more 
+
+static constexpr uint8_t  START_OF_FRAME_IDENTIFIER = 0xFA; // Must be the first byte of each message
+static constexpr uint8_t  INVALID_MESSAGE_ID        = 0xFF; // This is used to check if a commandID was set before sending a message out
 
 struct MessageMetadata {
 
@@ -30,11 +34,3 @@ struct NeffyResponse {
     static constexpr MessageMetadata MOVE_BODY_IN_TIME       = {.id = 0x04, .payloadLength = 2, .scaleFactor =  10};
     static constexpr MessageMetadata MOVE_HEAD_IN_TIME       = {.id = 0x05, .payloadLength = 2, .scaleFactor =  10};
 };
-
-struct CommandMethods {
-
-    uint8_t commandID;
-    void (*method)(Message&);
-};
-
-extern CommandMethods commandTable[COMMAND_AMOUNT];
