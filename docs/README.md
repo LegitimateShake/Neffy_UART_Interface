@@ -23,17 +23,17 @@ Main GitHub-Repo für [Neffy 3.0](https://github.com/YounesJamil/Neffy-3.0).
 
 ### Supported_Commands.h
 
-- Enthält eine enum mit allen unterstützen Commands
+- Enthält eine struct mit allen unterstützen Commands
 - Hier können Commands hinzugefügt werden, falls nötig
-- Dabei muss der Command in der NeffyCommands struct ergänzt werden, COMMAND_AMOUNT inkrementiert werden und der command in Supported_Commands.cpp in
-  das entsprechende Array eingetragen werden. Danach kann eine Funktion für den entsprechenden Command registriert werden.
+- Dabei muss der Command in der NeffyCommands struct ergänzt werden, COMMAND_AMOUNT inkrementiert werden und ggf. die MAX_COMMAND_ID auf die neue höchste ID erhöht werden.
+  Danach kann eine Funktion für den entsprechenden Command registriert werden.
 
 ## Protokollaufbau:
 
   Das Übertragungsprotokoll ist basiert auf der Übertragung einzelner Bytes. Jede Message, die geschickt / empfangen wird muss den folgenden Aufbau haben:
   | Byte | Beschreibung |
   | ------------- | ------------- |
-  | Byte 0        |   START_OF_FRAME_IDENTIFIER (Makro ist definiert in Neffy_Interface_Types.h)               |
+  | Byte 0        |   START_OF_FRAME_IDENTIFIER (Makro ist definiert in Supported_Commands.h)                  |
   | Byte 1        |   CommandID                 (Commands, die in Supported_Commands.h definiert sind)         |
   | Byte 2        |   Payload Length in Bytes                                                                  |
   | Byte 3 - n    |   Menge an Payload Bytes, die in Byte 2 angegeben ist. Alle weiteren Bytes werden ignoriert|
