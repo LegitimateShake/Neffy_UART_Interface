@@ -1,0 +1,9 @@
+{
+  "name": "Neffy_UART_Interface",
+  "version": "1.0.0",
+  "frameworks": "arduino",
+  "platforms": "espressif32",
+  "build": {
+    "srcDir": "src"
+  }
+}
