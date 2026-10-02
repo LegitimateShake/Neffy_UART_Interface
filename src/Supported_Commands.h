@@ -1,7 +1,7 @@
 #pragma once
 #include "stdint.h"
 
-static constexpr uint8_t  COMMAND_AMOUNT =   16; // Amount of currently supported commands. Increment, if you add more
+static constexpr uint8_t  COMMAND_AMOUNT =   14; // Amount of currently supported commands. Increment, if you add more
 static constexpr uint8_t  MAX_COMMAND_ID = 0x10; // Biggest commandID. Is used for length of command lookup-table. Increment if you add more
 
 static constexpr uint8_t  START_OF_FRAME_IDENTIFIER = 0xFA; // Must be the first byte of each message
@@ -18,7 +18,6 @@ struct NeffyCommands {
 
     static constexpr MessageMetadata LED                       = {.id = 0x00, .payloadLength = 1, .scaleFactor =   1};
     static constexpr MessageMetadata MUTE                      = {.id = 0x01, .payloadLength = 1, .scaleFactor =   1};
-    static constexpr MessageMetadata PRESSURE_USER_DETECTION_L = {.id = 0x02, .payloadLength = 1, .scaleFactor =   1};
     static constexpr MessageMetadata GET_PERSON_READING        = {.id = 0x03, .payloadLength = 1, .scaleFactor =   1};
     static constexpr MessageMetadata MOVE_BODY_IN_TIME         = {.id = 0x04, .payloadLength = 4, .scaleFactor = 0.1};
     static constexpr MessageMetadata MOVE_HEAD_IN_TIME         = {.id = 0x05, .payloadLength = 4, .scaleFactor = 0.1};
@@ -26,7 +25,6 @@ struct NeffyCommands {
     static constexpr MessageMetadata DISABLE_MOTORS            = {.id = 0x07, .payloadLength = 1, .scaleFactor =   1};
     static constexpr MessageMetadata PRESSURE_CLICK_L          = {.id = 0x08, .payloadLength = 0, .scaleFactor =   1};
     static constexpr MessageMetadata BREATHING_RATE            = {.id = 0x09, .payloadLength = 1, .scaleFactor =   1};
-    static constexpr MessageMetadata PRESSURE_USER_DETECTION_R = {.id = 0x0A, .payloadLength = 1, .scaleFactor =   1};
     static constexpr MessageMetadata PRESSURE_CLICK_R          = {.id = 0x0B, .payloadLength = 0, .scaleFactor =   1};
     // Breathing detection: START starts a 30 s measurement on the mainboard, which
     // answers with one of the three results (payload 0x00), or nothing if no
