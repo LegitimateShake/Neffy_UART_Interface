@@ -27,7 +27,7 @@ void setup() {
     interface.initUART(rx_pin, tx_pin, baudrate, UART_NUM_1);
 
     //Fill the Message structs that should be sent over UART
-    msg.command         = NeffyCommands::LED.id;
+    msg.command         = NeffyCommands::MUTE.id;
     msg.bytes_in_buffer = 1;
     msg.buffer[0]       = 0x00;
 
@@ -37,7 +37,7 @@ void loop() {
 
     /**
      * This program sends one message every second.
-     * The payload alternates between 0x00 and 0x01, eg. LED on and LED off
+     * The payload alternates between 0x00 and 0x01, eg. sound on and muted
      */
     now = millis();
     dif = now - prev;

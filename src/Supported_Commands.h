@@ -1,7 +1,7 @@
 #pragma once
 #include "stdint.h"
 
-static constexpr uint8_t  COMMAND_AMOUNT =   14; // Amount of currently supported commands. Increment, if you add more
+static constexpr uint8_t  COMMAND_AMOUNT =   13; // Amount of currently supported commands. Increment, if you add more
 static constexpr uint8_t  MAX_COMMAND_ID = 0x10; // Biggest commandID. Is used for length of command lookup-table. Increment if you add more
 
 static constexpr uint8_t  START_OF_FRAME_IDENTIFIER = 0xFA; // Must be the first byte of each message
@@ -16,7 +16,7 @@ struct MessageMetadata {
 
 struct NeffyCommands {
 
-    static constexpr MessageMetadata LED                       = {.id = 0x00, .payloadLength = 1, .scaleFactor =   1};
+    // MUTE: payload 0x01 = speaker muted, 0x00 = sound on (mainboard default after start)
     static constexpr MessageMetadata MUTE                      = {.id = 0x01, .payloadLength = 1, .scaleFactor =   1};
     static constexpr MessageMetadata GET_PERSON_READING        = {.id = 0x03, .payloadLength = 1, .scaleFactor =   1};
     static constexpr MessageMetadata MOVE_BODY_IN_TIME         = {.id = 0x04, .payloadLength = 4, .scaleFactor = 0.1};

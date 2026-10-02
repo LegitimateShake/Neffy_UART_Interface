@@ -19,7 +19,7 @@ NeffyInterface interface;
 bool pin_configured = false;
 
 
-//This function is executed every time a CMD_LED command is received
+//This function is executed every time a MUTE command is received and mirrors it on a pin
 void blink(Message& msg) {
 
     //Configure the Pin on the first call
@@ -47,14 +47,14 @@ void setup() {
     interface.initUART(rx_pin, tx_pin, baudrate, UART_NUM_0);
 
     //Add methods for commands
-    interface.addMethod(NeffyCommands::LED.id, &blink);
+    interface.addMethod(NeffyCommands::MUTE.id, &blink);
 }
 
 void loop() {
 
     /**
      * This program waits for messages
-     * For the command CMD_LED a method is registered. All other commands will be ignored
+     * For the command MUTE a method is registered. All other commands will be ignored
      * The method is executed once a message with the corresponding CommandID is received
      */
     interface.update();
